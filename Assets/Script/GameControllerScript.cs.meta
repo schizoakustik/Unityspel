@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 43247762a9b05364ba95685d5f426aa0
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - Player1: {fileID: 100002, guid: 02a1b3806b4fb904abb716ee8d977aa6, type: 2}
+  - Player2: {fileID: 100000, guid: 2adb536eb8e94bf4699e887a01ce5001, type: 2}
+  - p1GroundCheck: {fileID: 400000, guid: 02a1b3806b4fb904abb716ee8d977aa6, type: 2}
+  - p2GroundCheck: {fileID: 400004, guid: 2adb536eb8e94bf4699e887a01ce5001, type: 2}
+  - debugText: {fileID: 13200000, guid: ea3cf4cbceac6594ca62ae494fb0ba78, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
