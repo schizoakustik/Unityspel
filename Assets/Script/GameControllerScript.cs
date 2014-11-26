@@ -1,86 +1,122 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class GameControllerScript : MonoBehaviour {
-	//PLAYERS
-	public GameObject Player1;
-	public GameObject Player2;
-	public float p1MaxSpeed = 2f;
-	public float p2MaxSpeed = 2f;
-	public float jumpForce = 125f;
-	public bool p1CanJump = true;
-	public bool p2CanJump = true;
+	// PLAYERS, BALL AND ENEMIES
 
-	public bool p1Grounded = false;
-	public bool p2Grounded = false;
-	public Transform p1GroundCheck;
-	public Transform p2GroundCheck;
-	
-	float groundRadius = 0.2f;
-	
-	public LayerMask whatIsGround;
+	public GameObject[] Players;
+	public GameObject Ball;
+	public GameObject enemy;
 
-	bool p1DoubleJump = false;
-	bool p2DoubleJump = false;
-	
+	public Text[] score;
+
+	private int Player1Score = 0;
+	private int Player2Score = 0;
+
+	// BACKGROUND, PIPES AND STUFF
+
+	public Sprite[] Backgrounds;
+	public GameObject backgroundImage;
+	public GameObject[] upperPipes;
+	public GameObject[] lowerPipes;
+
+	// WINNING
+
+	public GameObject[] playerwins;
+	GameObject winPanel;
+
+	// GAME MODES
+
+	public bool endlessMode = false;
+
 	//POWER UPS
-/* 	public float powerUpSpawningTime = 15f;
-	private float lastTime = 0f; */
-
-	public GUIText debugText;
-//	public GameObject[] powerUpPrefabs;
-	//static Camera mainCamera = Camera.main;
+	public float powerUpSpawningTime = 15f;
+	private float lastTime = 0f;
 
 	// Use this for initialization
 	void Start () {
+		Player1Score = 0;
+		Player2Score = 0;
+		backgroundImage.GetComponent<SpriteRenderer>().sprite = Backgrounds[0];
 	}
 
 	void FixedUpdate() {
-		//	debugText.text = Time.time.ToString();
-		p1Grounded = Physics2D.OverlapCircle(p1GroundCheck.position, groundRadius, whatIsGround);
-		p2Grounded = Physics2D.OverlapCircle(p2GroundCheck.position, groundRadius, whatIsGround);
-
-		if(p1Grounded)
-			p1DoubleJump = false;
-
-		if(p2Grounded)
-			p2DoubleJump = false;
-
-		float p1Move = Input.GetAxis("P1Horizontal");
-		float p2Move = Input.GetAxis("P2Horizontal");
-		Player1.rigidbody2D.velocity = new Vector2(p1Move * p1MaxSpeed, Player1.rigidbody2D.velocity.y);
-		Player2.rigidbody2D.velocity = new Vector2(p2Move * p2MaxSpeed, Player2.rigidbody2D.velocity.y);
 	}
 
 	// Update is called once per frame
 	void Update() {
-		
-		if((p1Grounded || !p1DoubleJump) && Input.GetButtonDown("P1Jump") && p1CanJump) {
-			Player1.rigidbody2D.AddForce(new Vector2(0, jumpForce));
-
-			if(!p1DoubleJump && !p1Grounded)
-				p1DoubleJump = true;
-		}
-		
-		if((p2Grounded || !p2DoubleJump) && Input.GetButtonDown("P2Jump") && p2CanJump){
-			Player2.rigidbody2D.AddForce(new Vector2(0, jumpForce));
-
-			if(!p2DoubleJump && !p2Grounded)
-				p2DoubleJump = true;
-		}
-		
-	/* 	if((Time.time - lastTime) > powerUpSpawningTime) {
+		if((Time.time - lastTime) > powerUpSpawningTime) {
 			lastTime = Time.time;
-			float maxX = Random.Range(-15, 13);
-			float maxY = Random.Range(4, 10);
-			spawnPowerUp(maxX, maxY);
-		} */
+			spawnEnemy();
+		}
 	}
 
-	/* void spawnPowerUp(float maxX, float maxY) {
-		int randomPowerUp = Random.Range(0, powerUpPrefabs.Length);
-		Vector2 randomPos = new Vector2(maxX, maxY);
-		Instantiate(powerUpPrefabs[randomPowerUp], randomPos, transform.rotation);
-		} */
+	public void changeBackground() {
+		Sprite backgroundSprite = backgroundImage.GetComponent<SpriteRenderer>().sprite;
+		if (backgroundSprite == Backgrounds[0]) {
+			backgroundSprite = Backgrounds[1];
+			Debug.Log(backgroundSprite);
+		}
+	}
+	
+	public void UpdateScore(string whichHit) {
+		if (whichHit == "leftGoal")
+			Player2Score++;
+		if (whichHit == "rightGoal")
+			Player1Score++;
+		if (whichHit == "enemyP1")
+			Player1Score--;
+		if (whichHit == "enemyP2")
+			Player2Score--;
 
+		score[1].text = Player2Score.ToString();
+		score[0].text = Player1Score.ToString();
+
+		if (whichHit == "leftGoal" || whichHit == "rightGoal")
+			ResetPositions();
+
+		if (Player1Score == 5 && !endlessMode)
+			endGame(0);
+
+		if (Player2Score == 5 && !endlessMode)
+			endGame(1);
+	}
+
+	void ResetPositions() {
+		// Reset ball position
+
+		float randomPipe = (upperPipes[Random.Range(0, 3)].transform.position.x);
+		Ball.transform.position = new Vector3(randomPipe, 0.8f, 0);
+		Ball.rigidbody2D.velocity = new Vector2(0, 0);
+
+		// Reset player positions
+		Players[0].transform.position = new Vector2(-0.62f, -0.8f);
+		Players[0].transform.rotation = new Quaternion(0, 0, 0, 0);
+		Players[1].transform.position = new Vector2(0.82f, -0.8f);
+		Players[1].transform.rotation = new Quaternion(0, 0, 0, 0);
+	}
+
+	void spawnEnemy() {
+		//int randomPowerUp = Random.Range(0, powerUps.Length);
+		float randomPipe = (upperPipes[Random.Range(0, 3)].transform.position.x);
+		Vector2 randomPos = new Vector2(randomPipe, 0.8f);
+		Instantiate(enemy, randomPos, transform.rotation);
+	}
+
+	public void setEndlessMode() {
+		endlessMode = !endlessMode;
+		}
+
+	void endGame(int winner) {
+		Time.timeScale = 0.03f;
+		winPanel = Instantiate (playerwins[winner]) as GameObject;
+		winPanel.name = playerwins[winner].name;
+		winPanel.transform.SetParent (GameObject.Find("Canvas").transform, false);
+	}
+
+	public void Restart() {
+		Application.LoadLevel(0);
+		Time.timeScale = 1;
+		}
 }
